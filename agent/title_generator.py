@@ -72,15 +72,10 @@ def generate_title(
             title = title[:77] + "..."
         return title if title else None
     except Exception as e:
-        # Log at WARNING so this shows up in agent.log without debug mode.
-        # Full detail at debug level for operators who need the stack.
-        logger.warning("Title generation failed: %s", e)
-        logger.debug("Title generation traceback", exc_info=True)
-        if failure_callback is not None:
-            try:
-                failure_callback("title generation", e)
-            except Exception:
-                logger.debug("Title generation failure_callback raised", exc_info=True)
+        # Title generation is fire-and-forget; failures are non-critical and
+        # should not surface a user-facing warning.  Log at DEBUG only so
+        # operators can still diagnose issues in agent.log when needed.
+        logger.debug("Title generation failed: %s", e, exc_info=True)
         return None
 
 
