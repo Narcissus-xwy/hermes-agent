@@ -2326,6 +2326,17 @@ def select_provider_and_model(args=None):
     active = _active_custom_key_from_base_url()
     if active is None:
         active = ""
+    # When provider=custom is set with a base_url but the endpoint is not
+    # in the named custom_providers list, treat it as an active custom
+    # endpoint so the user can change just the model without being kicked
+    # back to OpenRouter auto-detection.
+    if (
+        not active
+        and effective_provider == "custom"
+        and isinstance(model_cfg, dict)
+        and model_cfg.get("base_url")
+    ):
+        active = "custom"
     if not active and effective_provider != "auto":
         active_def = resolve_provider_full(
             effective_provider,
@@ -3589,6 +3600,14 @@ def _model_flow_custom(config):
 
     current_url = get_env_value("OPENAI_BASE_URL") or ""
     current_key = get_env_value("OPENAI_API_KEY") or ""
+    # When provider=custom with base_url/api_key already in config.yaml,
+    # use those as defaults so the user doesn't have to re-enter them.
+    model_cfg = config.get("model")
+    if isinstance(model_cfg, dict):
+        if not current_url and model_cfg.get("base_url"):
+            current_url = model_cfg["base_url"]
+        if not current_key and model_cfg.get("api_key"):
+            current_key = model_cfg["api_key"]
 
     print("Custom OpenAI-compatible endpoint configuration:")
     if current_url:
