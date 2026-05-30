@@ -317,8 +317,8 @@ _OR_HEADERS_BASE = {
 _TRUTHY_ENV_VALUES = frozenset({"1", "true", "yes", "on"})
 
 
-def build_or_headers(or_config: dict | None = None) -> dict:
-    """Build OpenRouter headers, optionally including response-cache headers.
+def build_or_headers(or_config: dict | None = None, *, api_key: str | None = None) -> dict:
+    """Build OpenRouter headers, optionally including auth/cache headers.
 
     Precedence for response cache: env var > config.yaml > default (enabled).
 
@@ -333,6 +333,8 @@ def build_or_headers(or_config: dict | None = None) -> dict:
     falls back to reading config from disk via ``load_config()``.
     """
     headers = dict(_OR_HEADERS_BASE)
+    if isinstance(api_key, str) and api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
 
     # Resolve config from disk if not provided.
     if or_config is None:
